@@ -8,14 +8,13 @@ class Environment():
         self.track = " "
         self.wall = "+"
         self.waypoint = "·"
-        self.path = []
     
     def _load_scenario(self, filename):
         with open(filename) as f:
             scenario = list(map(lambda line: [c for c in line], f.read().split("\n")))
         return scenario
     
-    def print(self, car):
+    def print(self, car, path=[]):
         top_nums = "  " + "".join(map(lambda n: str(n%10), range(0, len(self.scenario[0]))))
         buffer = top_nums + "\n  " + "-"*len(self.scenario[0])
         buffer += "\n"
@@ -26,7 +25,7 @@ class Environment():
                 if car.position == (row_index, col_index):
                     buffer += str(car)
                     continue
-                if any(filter(lambda waypoint: waypoint == (row_index, col_index), self.path)):
+                if any(filter(lambda waypoint: waypoint == (row_index, col_index), path)):
                     buffer += self.waypoint
                     continue
                 

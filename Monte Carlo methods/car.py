@@ -89,7 +89,7 @@ class Car():
 
         while True:
             reward, action = self.step()
-            if action == (0, 0): continue
+            # if action == (0, 0): continue
 
             state = (self.position, self.speed)
             steps.append((state, action))
@@ -115,9 +115,9 @@ class Car():
         if not self.environment.is_start(old_position) and self.environment.is_start(new_position):
             self.speed = (0, 0)
         
-        return self.reward(new_position), action
+        return self.reward(new_position, action), action
     
-    def reward(self, new_position):
+    def reward(self, new_position, action):
         if self.environment.is_finish(new_position):
             return 0
 
