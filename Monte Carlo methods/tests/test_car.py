@@ -51,7 +51,8 @@ class TestCar(unittest.TestCase):
         self.car.position = (7, 5)
         self.car.speed = (0, 0)
         self.car.select_action = Mock(return_value=(1, 0))
-        reward, action = self.car.step()
+        reward, old_state, action = self.car.step()
+        self.assertEqual(old_state, ((7, 5), (0, 0)))
         self.assertEqual((-1, (1, 0)), (reward, action))
         self.assertEqual(self.car.position, (8, 5))
         self.assertEqual(self.car.speed, (1, 0))
@@ -60,7 +61,7 @@ class TestCar(unittest.TestCase):
         self.car.position = (3, 5)
         self.car.speed = (4, 1)
         self.car.select_action = Mock(return_value=(1, 0))
-        reward, action = self.car.step()
+        reward, old_state, action = self.car.step()
         self.assertEqual((-1, (1, 0)), (reward, action))
         self.assertEqual(self.car.position, (7, 6))
         self.assertEqual(self.car.speed, (4, 1))
@@ -69,7 +70,7 @@ class TestCar(unittest.TestCase):
         self.car.position = (3, 10)
         self.car.speed = (0, -4)
         self.car.select_action = Mock(return_value=(0, -1))
-        reward, action = self.car.step()
+        reward, old_state, action = self.car.step()
         self.assertEqual((-1, (0, -1)), (reward, action))
         self.assertEqual(self.car.position, (3, 6))
         self.assertEqual(self.car.speed, (0, -4))
@@ -79,7 +80,7 @@ class TestCar(unittest.TestCase):
         self.car.speed = (-3, -4)
         self.car.select_action = Mock(return_value=(-1, 0))
         self.environment.select_start_position = Mock(return_value=(9, 7))
-        reward, action = self.car.step()
+        reward, old_state, action = self.car.step()
         self.assertEqual((-1, (-1, 0)), (reward, action))
         self.assertEqual(self.car.position, (9, 7))
         self.assertEqual(self.car.speed, (0, 0))
@@ -89,7 +90,7 @@ class TestCar(unittest.TestCase):
         self.car.speed = (5, 0)
         self.car.select_action = Mock(return_value=(-1, 0))
         self.environment.select_start_position = Mock(return_value=(9, 8))
-        reward, action = self.car.step()
+        reward, old_state, action = self.car.step()
         self.assertEqual((-1, (-1, 0)), (reward, action))
         self.assertEqual(self.car.position, (9, 8))
         self.assertEqual(self.car.speed, (0, 0))
@@ -99,7 +100,7 @@ class TestCar(unittest.TestCase):
         self.car.speed = (0, -1)
         self.car.select_action = Mock(return_value=(0, -1))
         self.environment.select_start_position = Mock(return_value=(9, 8))
-        reward, action = self.car.step()
+        reward, old_state, action = self.car.step()
         self.assertEqual((-1, (0, -1)), (reward, action))
         self.assertEqual(self.car.position, (9, 8))
         self.assertEqual(self.car.speed, (0, 0))
@@ -109,7 +110,7 @@ class TestCar(unittest.TestCase):
         self.car.speed = (-1, 0)
         self.car.select_action = Mock(return_value=(0, 1))
         self.environment.select_start_position = Mock(return_value=(9, 8))
-        reward, action = self.car.step()
+        reward, old_state, action = self.car.step()
         self.assertEqual((-1, (0, 1)), (reward, action))
         self.assertEqual(self.car.position, (9, 8))
         self.assertEqual(self.car.speed, (0, 0))
@@ -118,7 +119,7 @@ class TestCar(unittest.TestCase):
         self.car.position = (1, 15)
         self.car.speed = (-1, 0)
         self.car.select_action = Mock(return_value=(0, 1))
-        reward, action = self.car.step()
+        reward, old_state, action = self.car.step()
         self.assertEqual((0, (0, 1)), (reward, action))
         self.assertEqual(self.car.position, (0, 16))
         self.assertEqual(self.car.speed, (-1, 1))
@@ -127,7 +128,7 @@ class TestCar(unittest.TestCase):
         self.car.position = (2, 13)
         self.car.speed = (0, 3)
         self.car.select_action = Mock(return_value=(0, 1))
-        reward, action = self.car.step()
+        reward, old_state, action = self.car.step()
         self.assertEqual((0, (0, 1)), (reward, action))
         self.assertEqual(self.car.position, (2, 16))
         self.assertEqual(self.car.speed, (0, 4))
@@ -143,11 +144,11 @@ class TestCar(unittest.TestCase):
         steps, rewards = self.car.play()
 
         self.assertEqual(steps, [
+            (((1, 3), (0, 0)), (0, 1)),
             (((1, 4), (0, 1)), (0, 1)),
             (((1, 6), (0, 2)), (0, 1)),
             (((1, 9), (0, 3)), (0, 1)),
-            (((1, 13), (0, 4)), (0, 1)),
-            (((1, 16), (0, 4)), (0, 1))
+            (((1, 13), (0, 4)), (0, 1))
         ])
 
         self.assertEqual(rewards, [-1, -1, -1, -1, 0])
@@ -160,8 +161,8 @@ class TestCar(unittest.TestCase):
         self.assertEqual(self.car.position, (1, 16))
         self.assertEqual(self.car.speed, (0, 4))
         
-        self.assertEqual(self.car.Q[((1, 4), (0, 1))], {(0, 1): -4})
-        self.assertEqual(self.car.returns_sum[((1, 4), (0, 1))], -4)
+        self.assertEqual(dict(self.car.Q[((1, 4), (0, 1))]), {(0, 1): -3})
+        self.assertEqual(self.car.returns_sum[((1, 4), (0, 1))], -3)
         self.assertEqual(self.car.returns_count[((1, 4), (0, 1))], 1)
 
     def test_calculate_returns_only_first(self):

@@ -2,14 +2,14 @@ from collections import defaultdict
 import random
 
 class Car():
-    def __init__(self, environment, select_action_fn):
+    def __init__(self, environment, select_action_fn, greedy=0.9):
         self.environment = environment
         self._reset()
         self.Q = defaultdict(lambda: defaultdict(lambda: float("-inf")))
         self.returns_sum = defaultdict(float)
         self.returns_count = defaultdict(float)
         self.actions = []
-        self.greedy_probability = 0.9
+        self.greedy = greedy
         self.select_action_fn = select_action_fn
 
         for i in [-1, 0, 1]:
@@ -30,10 +30,10 @@ class Car():
         return self.select_action_fn(self)
     
     def train(self, episodes=10, update_policy_each=10):
-        self.Q = defaultdict(lambda: defaultdict(float))
+        # self.Q = defaultdict(lambda: defaultdict(float))
         # self.P = {}
-        self.returns_sum = defaultdict(float)
-        self.returns_count = defaultdict(float)
+        # self.returns_sum = defaultdict(float)
+        # self.returns_count = defaultdict(float)
         
         for i in range(episodes):
             print("\rStarted iteration {}    ".format(i), end="")
@@ -50,7 +50,7 @@ class Car():
 
             print("\rFinished iteration {}     ".format(i), end="")
 
-            if i % update_policy_each == 0:
+            if i % update_policy_each == 0 and i > 0:
                 self.P = self.calculate_policy(self.Q)
 
         print("")
@@ -88,11 +88,10 @@ class Car():
         self._reset()
 
         while True:
-            reward, action = self.step()
+            reward, old_state, action = self.step()
             # if action == (0, 0): continue
-
-            state = (self.position, self.speed)
-            steps.append((state, action))
+            
+            steps.append((old_state, action))
             rewards.append(reward)
             count += 1
             
@@ -102,7 +101,8 @@ class Car():
         return steps, rewards
     
     def step(self):
-        old_position = self.position
+        old_state = (self.position, self.speed)
+        
         action = self.select_action()
         self.speed = (self.speed[0] + action[0], self.speed[1] + action[1])
         self.speed = (min(4, self.speed[0]), min(4, self.speed[1]))
@@ -112,12 +112,12 @@ class Car():
         new_position, _path = self.environment.move_to(self, new_position)
         self.position = new_position
 
-        if not self.environment.is_start(old_position) and self.environment.is_start(new_position):
+        if not self.environment.is_start(old_state[0]) and self.environment.is_start(new_position):
             self.speed = (0, 0)
         
-        return self.reward(new_position, action), action
+        return self.reward(new_position), old_state, action
     
-    def reward(self, new_position, action):
+    def reward(self, new_position):
         if self.environment.is_finish(new_position):
             return 0
 
